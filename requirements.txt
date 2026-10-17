@@ -1,0 +1,5 @@
+# 复刻版命令行内核以 Python 标准库(>=3.10)为主。
+# 外部依赖:ffmpeg / ffprobe(见 app/core/ffmpeg_resolve.py 的定位规则)。
+# 例外:AB 音频模块 app/media/ab_audio.py(方案 M4)使用 numpy>=1.24,
+# 与原版 tab_ab_audio 同栈;不用 ab-audio / 魔术帧音频隐藏时可不装。
+numpy>=1.24
