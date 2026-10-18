@@ -29,7 +29,7 @@ BL1_STEP2 = '''"{ffmpeg_path}" -y -i "{output_path}/temp/step1.mp4" -stream_loop
 
 # Step 3 — scale2ref + interleave 交织、剔除前 19 帧内奇数帧
 # (报告 §4,BL-1 @0x4a1b829;BL-2 @0x4a1bcfb,除输出名外相同 —— 用 {mode} 区分)
-BL_STEP3 = '''"{ffmpeg_path}" -y -i "{output_path}/temp/step2.mp4" -i "{output_path}/temp/step1.mp4" -filter_complex [1:v][0:v]scale2ref[v1s][v0r];[v0r]setsar=1,fps=30[v0];[v1s]setsar=1,fps=30[v1];[v0][v1]interleave,select='not(eq(n,1)+eq(n,3)+eq(n,5)+eq(n,7)+eq(n,9)+eq(n,11)+eq(n,13)+eq(n,15)+eq(n,17)+eq(n,19))'[v] -map 1:a? -map [v] -c:v libx264 -preset fast -profile:v high -bf 0 -crf 18 -b:v 8000k -vsync vfr -movflags +faststart -f matroska -video_track_timescale 1000k -metadata artist={artist} -t {duration} "{output_path}/{filename}_{mode}_{time_tag}.mkv"'''
+BL_STEP3 = '''"{ffmpeg_path}" -y -i "{output_path}/temp/step2.mp4" -i "{output_path}/temp/step1.mp4" -filter_complex [1:v][0:v]scale2ref[v1s][v0r];[v0r]setsar=1,fps=30[v0];[v1s]setsar=1,fps=30[v1];[v0][v1]interleave,select='not(eq(n,1)+eq(n,3)+eq(n,5)+eq(n,7)+eq(n,9)+eq(n,11)+eq(n,13)+eq(n,15)+eq(n,17)+eq(n,19))'[v] -map 1:a? -map [v] -c:v libx264 -preset fast -profile:v high -bf 0 -crf 18 -b:v 8000k -fps_mode vfr -movflags +faststart -f matroska -video_track_timescale 1000k -metadata artist={artist} -t {duration} "{output_path}/{filename}_{mode}_{time_tag}.mkv"'''
 
 # Step 4 — 元数据重写(报告 §4,@0x4a1ba50)
 BL_STEP4 = '''"{ffmpeg_path}" -y -i "{output_path}/{filename}_{mode}_{time_tag}.mkv" -c copy -metadata title={title} -metadata date={date} -movflags +faststart -f matroska "{output_path}/temp/meta_temp.mkv"'''

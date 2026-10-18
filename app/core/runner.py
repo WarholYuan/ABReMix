@@ -29,6 +29,35 @@ def format_cmd(cmd: list[str]) -> str:
     return " ".join(f'"{c}"' if (" " in c or ";" in c) else c for c in cmd)
 
 
+def _normalize_ffmpeg_cmd(cmd: list[str]) -> list[str]:
+    """兼容现代 FFmpeg (7+/8+/9+): 将已移除的 -vsync 自动映射为 -fps_mode。"""
+    new_cmd: list[str] = []
+    i = 0
+    val_map = {
+        "0": "passthrough",
+        "1": "cfr",
+        "2": "vfr",
+        "vfr": "vfr",
+        "cfr": "cfr",
+        "passthrough": "passthrough",
+    }
+    while i < len(cmd):
+        arg = cmd[i]
+        if arg == "-vsync":
+            if i + 1 < len(cmd):
+                val = cmd[i + 1]
+                new_cmd.extend(["-fps_mode", val_map.get(val, val)])
+                i += 2
+                continue
+            else:
+                new_cmd.append("-fps_mode")
+                i += 1
+                continue
+        new_cmd.append(arg)
+        i += 1
+    return new_cmd
+
+
 def run_ffmpeg(
     cmd: list[str],
     total_duration: float | None = None,
@@ -39,6 +68,7 @@ def run_ffmpeg(
 
     total_duration 给出时,根据 stderr 的 time= 打印百分比进度。
     """
+    cmd = _normalize_ffmpeg_cmd(cmd)
     if not quiet:
         prefix = f"[{label}] " if label else ""
         print(f"{prefix}$ {format_cmd(cmd)}", file=sys.stderr, flush=True)

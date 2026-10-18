@@ -312,8 +312,10 @@ def ab_180(main: str, out: str, aux: str | None = None,
             raise ValueError("ab_180 需要辅轨文件(-a),或 --aux-gen circles 自动生成")
         tmp = make_temp_dir(out)
         aux = str(tmp / "aux_circles.mp4")
+        # 同心圆呼吸周期 2π/0.9 ≈ 6.98s，生成 7.0s 片段由后续 -stream_loop -1 无缝循环，大幅提速
+        circle_dur = min(info.duration, 7.0)
         background_gen.gen_circles(aux, info.width, info.height,
-                                   info.duration, seed=seed)
+                                   circle_dur, seed=seed)
     # 帧时间结构(2026-10-14 按真品 hongshu180.mov 的 stts 实测修正):
     # 真品并非均匀 180fps CFR,而是 120Hz 主轨网格 + 辅轨帧紧贴其后:
     # 每组 3 帧中,辅轨前一帧主轨显示时长被压到 1µs(实际不可见),
@@ -337,7 +339,7 @@ def ab_180(main: str, out: str, aux: str | None = None,
         [ffmpeg_path(), "-y", "-i", main, "-stream_loop", "-1", "-i", aux,
          "-filter_complex", fc, "-map", "[v]", "-map", "0:a?",
          *ENCODE_X264_CRF18, *AUDIO_AAC,
-         "-g", "250", "-sc_threshold", "0", "-vsync", "vfr",
+         "-g", "250", "-sc_threshold", "0", "-fps_mode", "vfr",
          "-video_track_timescale", "1000000",
          "-t", f"{info.duration}", out],
         total_duration=info.duration, label="ab-180",
